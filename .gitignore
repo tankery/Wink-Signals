@@ -11,6 +11,7 @@ GypAndroid.mk
 
 # Make
 gyp-mac-tool
+Makefile
 *.Makefile
 
 # Build
