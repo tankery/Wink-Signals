@@ -41,6 +41,14 @@ As you can see, this library is quite fast compared to regular function calls.
 > #### **NOTE:**
 > This benchmark, uses only one call-back for the `event_queue` and `signal` objects.
 
+# Test
+
+Test use [Catch](https://github.com/philsquared/Catch) library and require [GYP](https://code.google.com/p/gyp/) to generate build project.
+
+Use `gyp --depth=.` to generate build system for your platform. Then make it use your faverate toolchain.
+
+If you want to generate a GNU make project, run `gyp --depth=. -f make`. Then you can `make` it.
+
 # Usage
 
 The library is contained within the `wink/` directory and is within the `wink` namespace.
