@@ -40,26 +40,44 @@ namespace wink
     class queue
     {
     private:
+        typedef std::unique_ptr<T> uptr_t;
         std::mutex              d_mutex;
         std::condition_variable d_condition;
-        std::deque<T>           d_queue;
+        std::deque<uptr_t>      d_queue;
     public:
         inline void push(T const& value) {
             {
                 std::unique_lock<std::mutex> lock(this->d_mutex);
-                d_queue.push_front(value);
+                d_queue.push_front(uptr_t(new T(value)));
             }
             this->d_condition.notify_one();
         }
-        inline T pop() {
+        inline uptr_t pop() {
             std::unique_lock<std::mutex> lock(this->d_mutex);
             this->d_condition.wait(lock, [=]{ return !this->d_queue.empty(); });
-            T rc(std::move(this->d_queue.back()));
+            uptr_t rc(std::move(this->d_queue.back()));
             this->d_queue.pop_back();
             return std::move(rc);
         }
+        inline uptr_t try_pop() {
+            std::unique_lock<std::mutex> lock(this->d_mutex);
+            if (this->d_queue.empty())
+                return nullptr;
+            uptr_t rc(std::move(this->d_queue.back()));
+            this->d_queue.pop_back();
+            return std::move(rc);
+        }
+        inline void clear() {
+            std::unique_lock<std::mutex> lock(this->d_mutex);
+            this->d_queue.clear();
+        }
         inline size_t size() {
+            std::unique_lock<std::mutex> lock(this->d_mutex);
             return this->d_queue.size();
+        }
+        inline size_t empty() {
+            std::unique_lock<std::mutex> lock(this->d_mutex);
+            return this->d_queue.empty();
         }
     };
 
