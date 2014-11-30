@@ -6,7 +6,15 @@ Please read the tutorial further down if you wish to use the library.
 
 # Author
 
+**Original author & creator:**
+
 Miguel Martin - [miguel@miguel-martin.com](mailto:miguel@miguel-martin.com)
+
+**Mender:**
+
+Tankery Chen - [tankery.chen@gmail.com](mailto:tankery.chen@gmail.com)
+
+Aim to enhance this library in cross-thread usage. And add some test for it.
 
 # Tested Compilers
 
