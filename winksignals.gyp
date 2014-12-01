@@ -9,6 +9,10 @@
             'target_name': 'winksignal',
             'type': '<(component)',
 
+            'defines': [
+                'WINK_MULTI_THREAD',
+            ],
+
             'include_dirs':[
                 'include',
                 'source',
@@ -21,6 +25,9 @@
             'direct_dependent_settings': {
                 'include_dirs':[
                     'include',
+                ],
+                'defines': [
+                    'WINK_MULTI_THREAD',
                 ],
             },
 

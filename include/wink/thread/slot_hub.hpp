@@ -93,6 +93,12 @@ namespace wink
         template<typename R, typename... Args>
         bool send(fastdelegate::FastDelegate< R(Args...)>&& delegate, Args&&... args)
         {
+            return send(delegate, std::forward<Args>(args)...);
+        }
+
+        template<typename R, typename... Args>
+        bool send(const fastdelegate::FastDelegate< R(Args...)>& delegate, Args&&... args)
+        {
             if (!is_alive())
                 return false;
             auto func = std::bind(delegate, std::forward<Args>(args)...);

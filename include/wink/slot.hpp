@@ -32,9 +32,13 @@
 #include <utility>
 
 #include <wink/detail/FastDelegate.h>
+#ifdef WINK_MULTI_THREAD
+#include "wink/thread/receiver.hpp"
+#endif
 
 namespace wink
 {
+
 	/// \brief Describes a slot that may be added to a signal, or used stand-alone for a call-back
 	///
 	/// This can be used as an alternative to std::function, as it is much faster.
@@ -46,6 +50,10 @@ namespace wink
 	private:
 		
 		typedef slot<Signature> this_type;
+
+#ifdef WINK_MULTI_THREAD
+        std::weak_ptr<slot_hub> slothub;
+#endif
 		
 	public:
 		
@@ -66,10 +74,20 @@ namespace wink
 		/// Construct a slot with a member-function
 		/// \param obj The object that the member-function belongs to
 		/// \param fn The member function of the object
+#ifdef WINK_MULTI_THREAD
+		template <typename T, typename MemFnPtr>
+		slot(T* obj, MemFnPtr fn)
+			: _delegate(obj, fn)
+        {
+            if (std::is_base_of<receiver, T>::value && obj)
+				slothub = reinterpret_cast<receiver*>(obj)->slothub;
+		}
+#else
 		template <typename T, typename MemFnPtr>
 		slot(T* obj, MemFnPtr fn)
 			: _delegate(obj, fn)
 		{}
+#endif
 		
 		/// Copy constructor
 		slot(const this_type& slot)
@@ -93,7 +111,13 @@ namespace wink
 		template <class ...Args>
 		void operator()(Args&&... args) const
 		{
-			_delegate(std::forward<Args>(args)...);
+#ifdef WINK_MULTI_THREAD
+			std::shared_ptr<slot_hub> hub = slothub.lock();
+			if (hub && !hub->same_thread())
+				hub->send(_delegate, std::forward<Args>(args)...);
+			else
+#endif
+				_delegate(std::forward<Args>(args)...);
 		}
 		
 		

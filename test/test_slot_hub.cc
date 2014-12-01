@@ -95,7 +95,7 @@ TEST_CASE( "slot_hub can't use without prepare", "[queue]" ) {
             FastDelegate<void(int)> delegate(&rc, &Receiver::increase);
 
             REQUIRE( rc.count == 0 );
-            REQUIRE( thread_slot->send(std::move(delegate), 3) );
+            REQUIRE( thread_slot->send(delegate, 3) );
             while (!thread_slot->is_idel())
                 ;
             REQUIRE( rc.count == 3 );
