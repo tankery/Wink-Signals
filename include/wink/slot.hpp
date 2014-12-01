@@ -52,7 +52,7 @@ namespace wink
 		typedef slot<Signature> this_type;
 
 #ifdef WINK_MULTI_THREAD
-        std::weak_ptr<slot_hub> slothub;
+        receiver* precv;
 #endif
 		
 	public:
@@ -78,9 +78,10 @@ namespace wink
 		template <typename T, typename MemFnPtr>
 		slot(T* obj, MemFnPtr fn)
 			: _delegate(obj, fn)
+			, precv(nullptr)
         {
             if (std::is_base_of<receiver, T>::value && obj)
-				slothub = reinterpret_cast<receiver*>(obj)->slothub;
+				precv = reinterpret_cast<receiver*>(obj);
 		}
 #else
 		template <typename T, typename MemFnPtr>
@@ -112,9 +113,8 @@ namespace wink
 		void operator()(Args&&... args) const
 		{
 #ifdef WINK_MULTI_THREAD
-			std::shared_ptr<slot_hub> hub = slothub.lock();
-			if (hub && !hub->same_thread())
-				hub->send(_delegate, std::forward<Args>(args)...);
+			if (precv)
+				precv->emit(_delegate, std::forward<Args>(args)...);
 			else
 #endif
 				_delegate(std::forward<Args>(args)...);

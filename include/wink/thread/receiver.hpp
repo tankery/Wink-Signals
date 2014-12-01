@@ -45,6 +45,30 @@ namespace wink
             : slothub(hub)
         {}
 
+        // Receiver transform the slot emit event. User can Override this method
+        // to do something on signal thread when emit.
+        //
+        // This will be useful when you want to connet slot on platform UI thread,
+        // which may not possiable to run the blocking slot loop.
+        // User can send a event to UI thread, so it can invoke a non-blocking loop
+        // when signal emit.
+        //
+        // For example, on Android, the UI thread can't be blocked. So we override
+        // the emit, send a DO_LOOP message to UI thread after send the slot. When
+        // UI thread handling this message, it can invoke a loop (on UI thread) to
+        // call the slots in queue.
+        template<typename R, typename... Args>
+        bool emit(const fastdelegate::FastDelegate< R(Args...)>& delegate, Args&&... args)
+        {
+            std::shared_ptr<slot_hub> hub = slothub.lock();
+            if (hub && !hub->same_thread())
+                return hub->send(delegate, std::forward<Args>(args)...);
+            else
+                delegate(std::forward<Args>(args)...);
+
+            return false;
+        }
+
     };
 }
 
