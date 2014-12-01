@@ -1,33 +1,55 @@
 {
 
+    'includes': [
+        'gyp-config/cpp11.gypi',
+    ],
+
     'targets': [
         {
-            'target_name': 'winksignal_test',
-            'type': 'executable',
+            'target_name': 'winksignal',
+            'type': '<(component)',
 
             'include_dirs':[
-                'test/catch/include',
-                '.',
+                'include',
+                'source',
             ],
 
             'sources': [
-                '<!@(ls test/*.cc)',
+                '<!@(ls source/*.cc)',
             ],
+
+            'direct_dependent_settings': {
+                'include_dirs':[
+                    'include',
+                ],
+            },
 
         },
     ],
 
-    'target_defaults': {
+    'conditions': [
+        ['OS=="linux"', {
+            'targets': [
+                {
+                    'target_name': 'winksignal_test',
+                    'type': 'executable',
 
-        'cflags': [
-            '-std=c++11',
-            '-O3',
-        ],
+                    'include_dirs':[
+                        'test/catch/include',
+                        'source',
+                    ],
 
-        'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11','-stdlib=libc++'],
-            'OTHER_LDFLAGS': ['-stdlib=libc++'],
-        },
-    },
+                    'sources': [
+                        '<!@(ls test/*.cc)',
+                    ],
+
+                    'dependencies': [
+                        'winksignal',
+                    ],
+
+                },
+            ],
+        }],
+    ],   # conditions
 
 }

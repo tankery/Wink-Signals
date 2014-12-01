@@ -1,5 +1,5 @@
 CXX=c++
-CXX_ARGS=-I ../ -std=c++11
+CXX_ARGS=-I ../include -std=c++11
 
 benchmark:
 	@echo "Compiling benchmark..."

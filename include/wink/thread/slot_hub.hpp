@@ -69,56 +69,16 @@ namespace wink
         const tid_t m_tid;
         std::atomic<bool> m_alive;
         
-        slot_hub()
-            : m_queue()
-            , m_tid(std::this_thread::get_id())
-            , m_alive(true)
-        {
-        }
+        slot_hub();
 
     public:
         
-        static inline bool prepare()
-        {
-#ifdef __APPLE__
-            auto this_tid = std::this_thread::get_id();
-            s_hub_table[this_tid] = sptr_this_t(new slot_hub);
-#else
-            if (s_instance)
-                return false;
-            s_instance = sptr_this_t(new slot_hub);
-#endif
-
-            return true;
-        }
+        static bool prepare();
         
         // explicit destroy the instance.
-        static inline void destroy()
-        {
-#ifdef __APPLE__
-            auto this_tid = std::this_thread::get_id();
-            s_hub_table[this_tid] = nullptr;
-#else
-            s_instance = nullptr;
-#endif
-        }
+        static void destroy();
 
-        static inline bool loop(bool blocking = false)
-        {
-            const sptr_this_t& hub = my_hub();
-            if (!hub)
-                return false;
-
-            queue_t& q = hub->queue();
-
-            uptr_func_t pfunc;
-            while ( hub->m_alive && (pfunc = blocking? q.pop() : q.try_pop()) )
-            {
-                (*pfunc)();
-            }
-
-            return true;
-        }
+        static bool loop(bool blocking = false);
 
         static inline sptr_this_t& my_hub()
         {
@@ -131,7 +91,7 @@ namespace wink
         }
 
         template<typename R, typename... Args>
-        inline bool send(fastdelegate::FastDelegate< R(Args...)>&& delegate, Args&&... args)
+        bool send(fastdelegate::FastDelegate< R(Args...)>&& delegate, Args&&... args)
         {
             if (!is_alive())
                 return false;
@@ -141,14 +101,7 @@ namespace wink
             return true;
         }
 
-        inline void stop()
-        {
-            if (!is_alive())
-                return;
-            // clear every other queue things and push a stop expression.
-            queue().clear();
-            queue().push(std::move([&] { m_alive = false; }));
-        }
+        void stop();
 
         inline bool is_alive()
         {
@@ -172,11 +125,6 @@ namespace wink
         }
     };
 
-#ifdef __APPLE__
-    slot_hub::hub_table_t slot_hub::s_hub_table;
-#else
-    thread_local slot_hub::sptr_this_t slot_hub::s_instance;
-#endif
 }
 
 

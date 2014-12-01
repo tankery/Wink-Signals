@@ -1,3 +1,6 @@
 [submodule "test/catch"]
 	path = test/catch
 	url = git@github.com:philsquared/Catch.git
+[submodule "gyp-config"]
+	path = gyp-config
+	url = git@github.com:tankery/gyp-config.git
