@@ -6,7 +6,7 @@
 
     'targets': [
         {
-            'target_name': 'winksignal',
+            'target_name': 'winksignals',
             'type': '<(component)',
 
             'defines': [
@@ -38,7 +38,7 @@
         ['OS=="linux"', {
             'targets': [
                 {
-                    'target_name': 'winksignal_test',
+                    'target_name': 'winksignals_test',
                     'type': 'executable',
 
                     'include_dirs':[
@@ -51,7 +51,7 @@
                     ],
 
                     'dependencies': [
-                        'winksignal',
+                        'winksignals',
                     ],
 
                 },

@@ -86,12 +86,13 @@ bool slot_hub::loop(bool blocking)
     return true;
 }
 
-void slot_hub::stop()
+void slot_hub::stop(bool clearSlots)
 {
     if (!is_alive())
         return;
     // clear every other queue things and push a stop expression.
-    queue().clear();
+    if (clearSlots)
+        queue().clear();
     queue().push(std::move([&] { m_alive = false; }));
 }
 

@@ -55,7 +55,7 @@ namespace wink
         typedef std::function<void()> func_t;
         typedef std::unique_ptr<func_t> uptr_func_t;
         typedef wink::queue<func_t> queue_t;
-        
+
 #ifdef __APPLE__
         // Apple not support the thread_local, so I do some tricky here.
         // TODO: destroy slot_hub when thread exit.
@@ -68,13 +68,13 @@ namespace wink
         queue_t m_queue;
         const tid_t m_tid;
         std::atomic<bool> m_alive;
-        
+
         slot_hub();
 
     public:
-        
+
         static bool prepare();
-        
+
         // explicit destroy the instance.
         static void destroy();
 
@@ -107,7 +107,7 @@ namespace wink
             return true;
         }
 
-        void stop();
+        void stop(bool clearSlots = true);
 
         inline bool is_alive()
         {

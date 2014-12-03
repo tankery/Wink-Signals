@@ -31,6 +31,9 @@
 
 #include <vector>
 #include <utility>
+#ifdef WINK_MULTI_THREAD
+#include <mutex>
+#endif
 
 #include <wink/slot.hpp>
 
@@ -40,63 +43,79 @@ namespace wink
 	struct signal
 	{
 	private:
-		
+
 		typedef signal<Slot> this_type;
-		
+
 	public:
-		
+
 		typedef Slot slot_type;
-		
+
 		/// Connects a slot to the signal
 		/// \param args The arguments you wish to construct the slot with to connect to the signal
 		template <typename... Args>
 		void connect(Args&&... args)
-		{
+        {
+#ifdef WINK_MULTI_THREAD
+            std::unique_lock<std::mutex> lock(array_mutex);
+#endif
 			_slots.emplace_back(std::forward<Args>(args)...);
 		}
-		
+
 		/// Disconnects a slot from the signal
 		/// \param args The arguments you wish to construct a slot with
 		template <typename... Args>
 		void disconnect(Args&&... args)
-		{
+        {
+#ifdef WINK_MULTI_THREAD
+            std::unique_lock<std::mutex> lock(array_mutex);
+#endif
 			_slots.erase(std::find(_slots.begin(), _slots.end(), slot_type(std::forward<Args>(args)...)));
 		}
-		
+
 		/// Emits the events you wish to send to the call-backs
 		/// \param args The arguments to emit to the slots connected to the signal
 		template <class ...Args>
-		void emit(Args&&... args) const
-		{
+		void emit(Args&&... args)
+        {
+#ifdef WINK_MULTI_THREAD
+            std::unique_lock<std::mutex> lock(array_mutex);
+#endif
 			for(typename slot_array::const_iterator i = _slots.begin(); i != _slots.end(); ++i)
 			{
 				(*i)(std::forward<Args>(args)...);
 			}
 		}
-		
+
 		/// Emits events you wish to send to call-backs
 		/// \param args The arguments to emit to the slots connected to the signal
 		/// \note
 		/// This is equvialent to emit.
 		template <class ...Args>
-		void operator()(Args&&... args) const
+		void operator()(Args&&... args)
 		{
 			emit(std::forward<Args>(args)...);
 		}
-		
+
 		// comparision operators for sorting and comparing
-		
+
 		bool operator==(const this_type& signal) const
 		{ return _slots == signal._slots; }
-		
+
 		bool operator!=(const this_type& signal) const
 		{ return !operator==(signal); }
-		
+
 	private:
-		
+
+#ifdef WINK_MULTI_THREAD
+		// With multi-thread support, we should keep signal thread-safe.
+        // We don't use recursive_mutex, cause reentrance of this object is dengerous.
+        // Do not let this happen.
+		std::mutex array_mutex;
+#endif
+
 		/// defines an array of slots
 		typedef std::vector<slot_type> slot_array;
-		
+
 		/// The slots connected to the signal
 		slot_array _slots;
 	};

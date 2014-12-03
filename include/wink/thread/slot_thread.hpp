@@ -56,13 +56,11 @@ namespace wink
                 slot_hub::prepare();
                 slothub = slot_hub::my_hub();
                 fn(std::forward<Args>(args)...);
-
                 {
                     std::unique_lock<std::mutex> lock(m_initial);
                     is_ready = true;
                     thread_ready.notify_one();
                 }
-
                 slot_hub::loop(true);
                 slot_hub::destroy();
             }, std::forward<Fn>(fn), std::forward<Args>(args)...)
@@ -73,15 +71,25 @@ namespace wink
             thread_ready.wait(lock, [&] { return is_ready; });
         }
 
+        ~slot_thread()
+        {
+        }
+
+        template <class Fn, class... Args>
+        static std::unique_ptr<slot_thread> create(Fn&& fn, Args&&... args)
+        {
+            return std::move(std::unique_ptr<slot_thread>(new slot_thread(std::forward<Fn>(fn), std::forward<Args>(args)...)));
+        }
+
         bool ready()
         {
             return is_ready;
         }
 
-        void join() {
+        void join(bool clearSlots = true) {
             std::shared_ptr<slot_hub> hub = slothub.lock();
             if (hub)
-                hub->stop();
+                hub->stop(clearSlots);
 
             std::thread::join();
         }
