@@ -33,6 +33,7 @@ namespace wink
 
 #ifdef __APPLE__
     slot_hub::hub_table_t slot_hub::s_hub_table;
+    std::mutex slot_hub::m_table_mutex;
 #else
     thread_local slot_hub::sptr_this_t slot_hub::s_instance;
 #endif
@@ -49,6 +50,8 @@ bool slot_hub::prepare()
 {
 #ifdef __APPLE__
     auto this_tid = std::this_thread::get_id();
+
+    std::unique_lock<std::mutex> lock(m_table_mutex);
     s_hub_table[this_tid] = sptr_this_t(new slot_hub);
 #else
     if (s_instance)
@@ -63,6 +66,7 @@ void slot_hub::destroy()
 {
 #ifdef __APPLE__
     auto this_tid = std::this_thread::get_id();
+    std::unique_lock<std::mutex> lock(m_table_mutex);
     s_hub_table[this_tid] = nullptr;
 #else
     s_instance = nullptr;
@@ -71,7 +75,7 @@ void slot_hub::destroy()
 
 bool slot_hub::loop(bool blocking)
 {
-    const sptr_this_t& hub = my_hub();
+    sptr_this_t hub = my_hub();
     if (!hub)
         return false;
 

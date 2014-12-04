@@ -34,6 +34,7 @@
 #include <memory>
 #include <functional>
 #ifdef __APPLE__
+#include <mutex>
 #include <unordered_map>
 #endif
 #include "wink/detail/FastDelegate.h"
@@ -61,6 +62,7 @@ namespace wink
         // TODO: destroy slot_hub when thread exit.
         typedef std::unordered_map<tid_t, sptr_this_t> hub_table_t;
         static hub_table_t s_hub_table;
+        static std::mutex m_table_mutex;
 #else
         thread_local static sptr_this_t s_instance;
 #endif
@@ -80,10 +82,11 @@ namespace wink
 
         static bool loop(bool blocking = false);
 
-        static inline sptr_this_t& my_hub()
+        static inline sptr_this_t my_hub()
         {
 #ifdef __APPLE__
             auto this_tid = std::this_thread::get_id();
+            std::unique_lock<std::mutex> lock(m_table_mutex);
             return s_hub_table[this_tid];
 #else
             return s_instance;
