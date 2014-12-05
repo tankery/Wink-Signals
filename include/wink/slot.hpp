@@ -48,29 +48,25 @@ namespace wink
 	struct slot
 	{
 	private:
-		
+
 		typedef slot<Signature> this_type;
 
-#ifdef WINK_MULTI_THREAD
-        receiver* precv;
-#endif
-		
 	public:
-		
+
 		/// A static function pointer with the correct signature
 		typedef Signature FnPtr;
 
-		
+
 		/// Construct a slot with no call-back
 		slot()
 		{}
-		
+
 		/// Construct a slot with a static/global function call-back
 		/// \param fn The static/global function
 		slot(FnPtr fn)
             : _delegate(fn)
 		{}
-		
+
 		/// Construct a slot with a member-function
 		/// \param obj The object that the member-function belongs to
 		/// \param fn The member function of the object
@@ -89,15 +85,15 @@ namespace wink
 			: _delegate(obj, fn)
 		{}
 #endif
-		
+
 		/// Copy constructor
 		slot(const this_type& slot)
 			: _delegate(slot._delegate)
 		{}
-		
+
 		/// Destructor
 		~slot() {}
-		
+
 		/// Assignment operator
 		/// \param slot The slot you wish to assign to
 		/// \return *this
@@ -106,7 +102,7 @@ namespace wink
 			_delegate = slot._delegate;
 			return *this;
 		}
-		
+
 		/// Calls the slot
 		/// \param args Any arguments you want to pass to the slot
 		template <class ...Args>
@@ -119,34 +115,38 @@ namespace wink
 #endif
 				_delegate(std::forward<Args>(args)...);
 		}
-		
-		
+
+
 		// comparision operators for sorting and comparing
-		
+
 		bool operator==(const this_type& slot) const
 		{ return _delegate == slot._delegate; }
-		
+
 		bool operator!=(const this_type& slot) const
 		{ return !operator==(slot); }
-		
+
 		bool operator<(const this_type& slot) const
 		{ return _delegate < slot._delegate; }
-		
+
 		bool operator>(const this_type& slot) const
 		{ return slot._delegate > _delegate; }
-		
+
 		bool operator<=(const this_type& slot) const
 		{ return !operator>(slot); }
-		
+
 		bool operator>=(const this_type& slot) const
 		{ return !operator<(slot); }
-		
+
 	private:
-		
+
 		/// The implementation of the slot, as a delegate.
 		typedef fastdelegate::FastDelegate<Signature> impl_delegate;
-		
+
 		impl_delegate _delegate;
+
+#ifdef WINK_MULTI_THREAD
+        receiver* precv;
+#endif
 	};
 }
 

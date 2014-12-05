@@ -30,6 +30,7 @@
 #define WINK_SLOT_LOOP_HPP
 
 #include <cassert>
+#include <atomic>
 #include <thread>
 #include <memory>
 #include <functional>
